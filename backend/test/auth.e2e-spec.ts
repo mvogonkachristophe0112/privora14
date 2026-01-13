@@ -23,7 +23,7 @@ describe('AuthController (e2e)', () => {
     it('should signup successfully', () => {
       return request(app.getHttpServer())
         .post('/auth/signup')
-        .send({ email: 'test@example.com', password: 'password123' })
+        .send({ email: 'test@example.com', password: 'Password123!' })
         .expect(201)
         .expect({ message: 'User created successfully' });
     });
@@ -33,7 +33,7 @@ describe('AuthController (e2e)', () => {
     it('should login successfully', () => {
       return request(app.getHttpServer())
         .post('/auth/login')
-        .send({ email: 'test@example.com', password: 'password123' })
+        .send({ email: 'test@example.com', password: 'Password123!' })
         .expect(201)
         .expect((res) => {
           expect(res.body).toHaveProperty('accessToken');
