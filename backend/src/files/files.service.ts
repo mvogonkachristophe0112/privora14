@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventsGateway } from '../events/events.gateway';
 import * as crypto from 'crypto';
@@ -73,7 +77,11 @@ export class FilesService {
     return { transferId: transfer.id };
   }
 
-  async downloadFile(transferId: string, decryptionKey: string, userId: string) {
+  async downloadFile(
+    transferId: string,
+    decryptionKey: string,
+    userId: string,
+  ) {
     // Get transfer
     const transfer = await this.prisma.transfers.findUnique({
       where: { id: transferId },
@@ -98,10 +106,18 @@ export class FilesService {
     });
 
     // Derive key using stored salt
-    const key = crypto.scryptSync(decryptionKey, Buffer.from(file.salt, 'base64'), 32);
+    const key = crypto.scryptSync(
+      decryptionKey,
+      Buffer.from(file.salt, 'base64'),
+      32,
+    );
 
     // Decrypt
-    const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(file.iv, 'base64'));
+    const decipher = crypto.createDecipheriv(
+      'aes-256-gcm',
+      key,
+      Buffer.from(file.iv, 'base64'),
+    );
     decipher.setAuthTag(Buffer.from(file.authTag, 'base64'));
     const decrypted = Buffer.concat([
       decipher.update(Buffer.from(file.encryptedData, 'base64')),

@@ -16,6 +16,9 @@ import { FilesService } from './files.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadFileDto } from './dto/upload-file.dto';
+import { diskStorage } from 'multer';
+import { BadRequestException } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller('files')
 export class FilesController {
@@ -23,10 +26,70 @@ export class FilesController {
 
   @Post('upload')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        fileSize: 50 * 1024 * 1024, // 50MB limit
+      },
+      fileFilter: (req, file, callback) => {
+        // Allow common file types, block executables and potentially dangerous files
+        const allowedMimes = [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'application/vnd.ms-powerpoint',
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+          'text/plain',
+          'text/csv',
+          'image/jpeg',
+          'image/png',
+          'image/gif',
+          'image/webp',
+          'audio/mpeg',
+          'audio/wav',
+          'video/mp4',
+          'video/avi',
+          'video/mov',
+          'application/zip',
+          'application/x-zip-compressed',
+        ];
+
+        const blockedExtensions = [
+          '.exe',
+          '.bat',
+          '.cmd',
+          '.scr',
+          '.pif',
+          '.com',
+        ];
+
+        const fileExtension = file.originalname
+          .toLowerCase()
+          .substring(file.originalname.lastIndexOf('.'));
+
+        if (blockedExtensions.includes(fileExtension)) {
+          return callback(
+            new BadRequestException('File type not allowed'),
+            false,
+          );
+        }
+
+        if (!allowedMimes.includes(file.mimetype)) {
+          return callback(
+            new BadRequestException('Unsupported file type'),
+            false,
+          );
+        }
+
+        callback(null, true);
+      },
+    }),
+  )
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Body() body: { recipientEmail: string; encryptionKey: string },
+    @Body() body: UploadFileDto,
     @Req() req: any,
   ) {
     return this.filesService.uploadFile(

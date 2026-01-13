@@ -14,11 +14,7 @@ describe('FilesService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        FilesService,
-        PrismaService,
-        EventsGateway,
-      ],
+      providers: [FilesService, PrismaService, EventsGateway],
     }).compile();
 
     service = module.get<FilesService>(FilesService);
@@ -43,7 +39,9 @@ describe('FilesService', () => {
       const senderId = 'senderId';
 
       const recipient = { id: 'recipientId', email: recipientEmail };
-      (prismaService.users.findUnique as jest.Mock).mockResolvedValue(recipient);
+      (prismaService.users.findUnique as jest.Mock).mockResolvedValue(
+        recipient,
+      );
       (prismaService.files.create as jest.Mock).mockResolvedValue({
         id: 'fileId',
         name: file.originalname,
@@ -67,17 +65,28 @@ describe('FilesService', () => {
         updatedAt: new Date(),
       });
 
-      const result = await service.uploadFile(file, recipientEmail, encryptionKey, senderId);
+      const result = await service.uploadFile(
+        file,
+        recipientEmail,
+        encryptionKey,
+        senderId,
+      );
 
       expect(result).toEqual({ transferId: 'transferId' });
-      expect(eventsGateway.emitToUser).toHaveBeenCalledWith(senderId, 'file_upload_success', expect.any(Object));
+      expect(eventsGateway.emitToUser).toHaveBeenCalledWith(
+        senderId,
+        'file_upload_success',
+        expect.any(Object),
+      );
     });
 
     it('should throw BadRequestException if recipient not found', async () => {
       const file = {} as Express.Multer.File;
       (prismaService.users.findUnique as jest.Mock).mockResolvedValue(null);
 
-      await expect(service.uploadFile(file, 'email', 'key', 'id')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.uploadFile(file, 'email', 'key', 'id'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -100,10 +109,16 @@ describe('FilesService', () => {
         },
         senderId: 'senderId',
       };
-      (prismaService.transfers.findUnique as jest.Mock).mockResolvedValue(transfer);
+      (prismaService.transfers.findUnique as jest.Mock).mockResolvedValue(
+        transfer,
+      );
       (prismaService.transfers.update as jest.Mock).mockResolvedValue({});
 
-      const result = await service.downloadFile(transferId, decryptionKey, userId);
+      const result = await service.downloadFile(
+        transferId,
+        decryptionKey,
+        userId,
+      );
 
       expect(result).toHaveProperty('buffer');
       expect(result.name).toBe('test.txt');
@@ -112,9 +127,13 @@ describe('FilesService', () => {
 
     it('should throw ForbiddenException if not receiver', async () => {
       const transfer = { receiverId: 'otherId' };
-      (prismaService.transfers.findUnique as jest.Mock).mockResolvedValue(transfer);
+      (prismaService.transfers.findUnique as jest.Mock).mockResolvedValue(
+        transfer,
+      );
 
-      await expect(service.downloadFile('id', 'key', 'userId')).rejects.toThrow(ForbiddenException);
+      await expect(service.downloadFile('id', 'key', 'userId')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });

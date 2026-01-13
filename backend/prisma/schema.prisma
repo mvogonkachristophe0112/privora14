@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+model Users {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions    Sessions[]
+  files       Files[]
+  sentTransfers    Transfers[] @relation("SenderTransfers")
+  receivedTransfers Transfers[] @relation("ReceiverTransfers")
+  feedbacks   Feedback[]
+  auditLogs   AuditLogs[]
+}
+
+model Sessions {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user Users @relation(fields: [userId], references: [id])
+}
+
+model Files {
+  id            String   @id @default(cuid())
+  name          String
+  size          Int
+  type          String
+  encryptedData String
+  salt          String
+  iv            String
+  authTag       String
+  senderId      String
+  createdAt     DateTime @default(now())
+
+  sender    Users     @relation(fields: [senderId], references: [id])
+  transfers Transfers[]
+}
+
+model Transfers {
+  id         String   @id @default(cuid())
+  fileId     String
+  senderId   String
+  receiverId String
+  status     String
+  createdAt  DateTime @default(now())
+
+  file     Files @relation(fields: [fileId], references: [id])
+  sender   Users @relation("SenderTransfers", fields: [senderId], references: [id])
+  receiver Users @relation("ReceiverTransfers", fields: [receiverId], references: [id])
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  user Users @relation(fields: [userId], references: [id])
+}
+
+model AuditLogs {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+
+  user Users @relation(fields: [userId], references: [id])
+}

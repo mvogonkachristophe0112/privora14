@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: privora-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        value: ${DATABASE_URL}
+      - key: JWT_SECRET
+        value: ${JWT_SECRET}
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /health
+    port: 3000
