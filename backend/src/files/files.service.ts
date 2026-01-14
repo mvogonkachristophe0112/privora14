@@ -179,4 +179,44 @@ export class FilesService {
 
     return { sent, received };
   }
+
+  async getDashboardStats(userId: string) {
+    const sentCount = await this.prisma.transfers.count({
+      where: { senderId: userId },
+    });
+    const receivedCount = await this.prisma.transfers.count({
+      where: { receiverId: userId },
+    });
+    const totalFiles = sentCount + receivedCount;
+
+    // Calculate storage used (sum of file sizes)
+    const sentFiles = await this.prisma.transfers.findMany({
+      where: { senderId: userId },
+      include: { file: true },
+    });
+    const receivedFiles = await this.prisma.transfers.findMany({
+      where: { receiverId: userId },
+      include: { file: true },
+    });
+    const totalStorage = [...sentFiles, ...receivedFiles].reduce(
+      (sum, t) => sum + t.file.size,
+      0,
+    );
+
+    return {
+      totalFiles,
+      filesSent: sentCount,
+      filesReceived: receivedCount,
+      storageUsed: this.formatBytes(totalStorage),
+      storageLimit: '10 GB', // Mock limit
+    };
+  }
+
+  private formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
 }

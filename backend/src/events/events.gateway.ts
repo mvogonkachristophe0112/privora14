@@ -54,4 +54,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(socketId).emit(event, data);
     }
   }
+
+  getOnlineUsers(): string[] {
+    return Array.from(this.connectedUsers.keys());
+  }
 }

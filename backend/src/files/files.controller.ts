@@ -126,4 +126,10 @@ export class FilesController {
   async listFiles(@Req() req: any) {
     return this.filesService.listFiles(req.user.id);
   }
+
+  @Get('dashboard-stats')
+  @UseGuards(JwtAuthGuard)
+  async getDashboardStats(@Req() req: any) {
+    return this.filesService.getDashboardStats(req.user.id);
+  }
 }
