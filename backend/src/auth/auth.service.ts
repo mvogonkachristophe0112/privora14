@@ -77,4 +77,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
+
+  async getUsersByIds(userIds: string[]) {
+    return this.prisma.users.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, email: true },
+    });
+  }
 }

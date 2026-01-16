@@ -41,7 +41,8 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async getOnlineUsers() {
     const userIds = this.eventsGateway.getOnlineUsers();
-    // In real app, fetch user details from DB
-    return { onlineUsers: userIds };
+    // Fetch user emails from DB
+    const users = await this.authService.getUsersByIds(userIds);
+    return { onlineUsers: users.map(u => u.email) };
   }
 }

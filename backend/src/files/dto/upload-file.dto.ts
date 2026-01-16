@@ -7,6 +7,5 @@ export class UploadFileDto {
 
   @IsString({ message: 'Encryption key must be a string' })
   @IsNotEmpty({ message: 'Encryption key is required' })
-  @IsUUID('4', { message: 'Encryption key must be a valid UUID' })
   encryptionKey: string;
 }
