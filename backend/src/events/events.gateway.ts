@@ -26,29 +26,47 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       const token = client.handshake.auth.token || client.handshake.query.token;
       if (!token) {
+        console.log('Connection rejected: No token provided');
         client.disconnect();
         return;
       }
       const payload = this.jwtService.verify(token);
       const userId = payload.sub;
+
+      // Check if user is already connected (prevent duplicates)
+      if (this.connectedUsers.has(userId)) {
+        console.log(`User ${userId} already connected, disconnecting old connection`);
+        const oldSocketId = this.connectedUsers.get(userId);
+        if (oldSocketId) {
+          const oldClient = this.server.sockets.sockets.get(oldSocketId);
+          oldClient?.disconnect();
+        }
+      }
+
       this.connectedUsers.set(userId, client.id);
-      console.log(`User ${userId} connected`);
+      console.log(`User ${userId} connected. Total online: ${this.connectedUsers.size}`);
       // Emit to all clients that a user came online
-      this.server.emit('user_online', { userId });
+      this.server.emit('user_online', { userId, email: payload.email });
     } catch (error) {
+      console.error('Connection error:', error);
       client.disconnect();
     }
   }
 
   handleDisconnect(client: Socket) {
+    let disconnectedUserId: string | null = null;
     for (const [userId, socketId] of this.connectedUsers.entries()) {
       if (socketId === client.id) {
         this.connectedUsers.delete(userId);
-        console.log(`User ${userId} disconnected`);
-        // Emit to all clients that a user went offline
-        this.server.emit('user_offline', { userId });
+        disconnectedUserId = userId;
+        console.log(`User ${userId} disconnected. Total online: ${this.connectedUsers.size}`);
         break;
       }
+    }
+
+    if (disconnectedUserId) {
+      // Emit to all clients that a user went offline
+      this.server.emit('user_offline', { userId: disconnectedUserId });
     }
   }
 
