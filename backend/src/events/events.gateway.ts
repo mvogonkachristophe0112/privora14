@@ -33,6 +33,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const userId = payload.sub;
       this.connectedUsers.set(userId, client.id);
       console.log(`User ${userId} connected`);
+      // Emit to all clients that a user came online
+      this.server.emit('user_online', { userId });
     } catch (error) {
       client.disconnect();
     }
@@ -43,6 +45,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (socketId === client.id) {
         this.connectedUsers.delete(userId);
         console.log(`User ${userId} disconnected`);
+        // Emit to all clients that a user went offline
+        this.server.emit('user_offline', { userId });
         break;
       }
     }
