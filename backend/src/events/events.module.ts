@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { EventsGateway } from './events.gateway';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [
     JwtModule.register({
       secret: 'your-secret-key', // Match the secret in auth module
     }),
+    PrismaModule,
   ],
   providers: [EventsGateway],
   exports: [EventsGateway],
