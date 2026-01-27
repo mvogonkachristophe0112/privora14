@@ -81,6 +81,20 @@ START_APP.bat
 
 This will start both backend and frontend servers automatically.
 
+### 5. Update to Latest Code
+
+If you've pulled new changes from GitHub, use:
+
+```bash
+UPDATE_APP.bat
+```
+
+This will:
+- Stop running servers
+- Pull latest changes from GitHub
+- Install new dependencies
+- Restart servers with updated code
+
 ## 🔐 How It Works
 
 ### Encryption Workflow
@@ -154,7 +168,42 @@ npm test
 
 ## 📦 Deployment
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions for Render, Vercel, and other platforms.
+### Quick Deployment
+
+**Frontend (Vercel)**:
+1. Connect GitHub repo to Vercel
+2. Set Root Directory: `frontend`
+3. Add environment variable: `NEXT_PUBLIC_API_BASE`
+4. Deploy from `main` branch
+
+**Backend (Render)**:
+1. Connect GitHub repo to Render
+2. Use Docker deployment
+3. Set environment variables (DATABASE_URL, JWT_SECRET, etc.)
+4. Deploy from `main` branch
+
+### Detailed Instructions
+
+See [`DEPLOYMENT_GUIDE.md`](DEPLOYMENT_GUIDE.md) for comprehensive deployment instructions including:
+- ✅ Step-by-step setup for Vercel and Render
+- ✅ Environment variable configuration
+- ✅ CI/CD pipeline setup
+- ✅ Troubleshooting common deployment issues
+- ✅ How to verify deployments
+- ✅ Force clean redeployment steps
+
+### Deployment Branch
+
+- **Production Branch**: `main` (or `master`)
+- **Auto-deploy**: Enabled on push to production branch
+- **Build Info**: Visible on `/about` page showing commit hash and build time
+
+### Verify Deployment
+
+After deployment, check:
+1. Visit `/about` page to see build information
+2. Verify commit hash matches latest GitHub commit
+3. Test all features (login, file upload, real-time updates)
 
 ## 🏗️ Tech Stack
 
