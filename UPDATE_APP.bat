@@ -12,7 +12,7 @@ echo.
 
 echo [2/5] Pulling latest changes from GitHub...
 git fetch origin
-git pull origin main
+git pull origin master
 if %ERRORLEVEL% NEQ 0 (
     echo ERROR: Git pull failed!
     echo.
